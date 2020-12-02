@@ -1,46 +1,169 @@
-// Enemies our player must avoid
-var Enemy = function() {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
+const numEnemies = 5;
+const enemyMinSpeed = 50;
+const enemyMaxSpeed = 250;
+const enemyMinStartX = -700;
+const enemyMaxStartX = 0;
+const enemyMinStartY = 60;
+const enemyMaxStartY = 395;
 
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
-    this.sprite = 'images/enemy-bug.png';
+const playerStartX = 200;
+const playerStartY = 400;
+const playerSpeed = 10;
+
+function randomMinMax(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+const Enemy = function () {
+  this.sprite = 'images/enemy-bug.png';
+  Resources.load(this.sprite);
 };
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
+Enemy.prototype.update = function (dt) {
+  const resetLine = 640;
+  this.x += this.speed * dt;
+  if (this.x > resetLine) {
+    this.startPosition();
+  }
 };
 
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+Enemy.prototype.startPosition = function () {
+  this.x = randomMinMax(enemyMinStartX, enemyMaxStartX);
+  this.y = randomMinMax(enemyMinStartY, enemyMaxStartY);
+  this.speed = randomMinMax(enemyMinSpeed, enemyMaxSpeed);
 };
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+Enemy.prototype.render = function () {
+  ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
 
+const Player = function () {
+  this.speed = playerSpeed;
+  this.sprite = 'images/char-horn-girl.png';
+  Resources.load(this.sprite);
+};
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
+Player.prototype.update = function (dx = 0, dy = 0) {
+  const minX = -10;
+  const maxX = 420;
+  const minY = -10;
+  const maxY = 400;
 
+  this.x += dx * this.speed;
+  this.y += dy * this.speed;
+  if (this.x < minX) {
+    this.x = minX;
+  }
+  if (this.x > maxX) {
+    this.x = maxX;
+  }
+  if (this.y < minY) {
+    this.y = minY;
+  }
+  if (this.y > maxY) {
+    this.y = maxY;
+  }
+};
 
+Player.prototype.render = function () {
+  ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
 
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
+Player.prototype.handleInput = function (direction) {
+  const d = 1;
+  let dx = 0;
+  let dy = 0;
+  switch (direction) {
+    case 'left':
+      dx = -d;
+      break;
+    case 'up':
+      dy = -d;
+      break;
+    case 'right':
+      dx = d;
+      break;
+    case 'down':
+      dy = d;
+      break;
+    default:
+      break;
+  }
+  this.update(dx, dy);
+};
 
-    player.handleInput(allowedKeys[e.keyCode]);
+Player.prototype.checkCollisions = function (enemies) {
+  // coordinates collision
+  const minX = 18;
+  const maxX = 84;
+  const minY = 85;
+  const maxY = 137;
+  return enemies.some(
+    function (enemy) {
+      const dx = this.x - enemy.x;
+      const dy = this.y - enemy.y;
+      const checkPointX = dx > 0 ? this.x + minX : this.x + maxX;
+      const checkPointY = dy > 0 ? this.y + minY : this.y + maxY;
+      if (
+        checkPointX >= enemy.x + minX &&
+        checkPointX <= enemy.x + maxX &&
+        checkPointY >= enemy.y + minY &&
+        checkPointY <= enemy.y + maxY
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    }.bind(this)
+  );
+};
+
+Player.prototype.startPosition = function () {
+  this.x = playerStartX;
+  this.y = playerStartY;
+};
+
+Player.prototype.inWater = function () {
+  const finishLine = -10;
+  return this.y <= finishLine;
+};
+
+function checkCollisions() {
+  if (player.checkCollisions(allEnemies) || player.inWater()) {
+    allEnemies.forEach(function (enemy) {
+      enemy.startPosition();
+    });
+    player.startPosition();
+  }
+}
+
+const allEnemies = [];
+for (let i = 0; i < numEnemies; i++) {
+  allEnemies.push(new Enemy());
+  allEnemies[i].startPosition();
+}
+const player = new Player();
+player.startPosition();
+
+document.addEventListener('keydown', function (e) {
+  let direction;
+  switch (e.code) {
+    case 'KeyA':
+    case 'ArrowLeft':
+      direction = 'left';
+      break;
+    case 'KeyW':
+    case 'ArrowUp':
+      direction = 'up';
+      break;
+    case 'KeyD':
+    case 'ArrowRight':
+      direction = 'right';
+      break;
+    case 'KeyS':
+    case 'ArrowDown':
+      direction = 'down';
+      break;
+  }
+  player.handleInput(direction);
 });
