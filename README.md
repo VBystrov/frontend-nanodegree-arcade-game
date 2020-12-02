@@ -5,14 +5,6 @@
 - [Instructions](#instructions)
 - [Contributing](#contributing)
 
-## Run Game
-
-To run game just open the page.
-
-## How to play
-
-Your goal - walk in water as hero without touching the bugs. To be safe from bugs you need to walk in water completely, not just touch water. To move use arrows or WASD. 
-
 ## Instructions
 
 Use this [rubric](https://review.udacity.com/#!/rubrics/15/view) for self-checking your submission.
@@ -26,4 +18,3 @@ For detailed instructions on how to get started, check out this [guide](https://
 ## Contributing
 
 This repository is the starter code for _all_ Udacity students. Therefore, we most likely will not accept pull requests.
-
